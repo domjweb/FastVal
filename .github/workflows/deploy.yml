@@ -1,0 +1,149 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: fastval-prod-rg
+  AZURE_LOCATION: eastus
+  ACR_NAME: fastvalprodacr
+  BACKEND_IMAGE: fastval-backend
+  FRONTEND_IMAGE: fastval-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login to Azure Container Registry
+      run: |
+        az acr login --name ${{ env.ACR_NAME }}
+
+    - name: Build and push backend image
+      run: |
+        docker build -f Dockerfile.backend \
+          -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE }}:${{ github.sha }} \
+          -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE }}:latest \
+          .
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE }}:latest
+
+    - name: Build and push frontend image
+      run: |
+        docker build -f Dockerfile.frontend \
+          -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.FRONTEND_IMAGE }}:${{ github.sha }} \
+          -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.FRONTEND_IMAGE }}:latest \
+          .
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.FRONTEND_IMAGE }}:latest
+
+  deploy-infrastructure:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Terraform Init
+      working-directory: ./terraform
+      run: terraform init
+
+    - name: Terraform Plan
+      working-directory: ./terraform
+      run: |
+        terraform plan \
+          -var="project_name=fastval" \
+          -var="environment=prod" \
+          -var="location=${{ env.AZURE_LOCATION }}" \
+          -var="db_admin_username=${{ secrets.DB_ADMIN_USERNAME }}" \
+          -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}"
+
+    - name: Terraform Apply
+      working-directory: ./terraform
+      run: |
+        terraform apply -auto-approve \
+          -var="project_name=fastval" \
+          -var="environment=prod" \
+          -var="location=${{ env.AZURE_LOCATION }}" \
+          -var="db_admin_username=${{ secrets.DB_ADMIN_USERNAME }}" \
+          -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}"
+
+  deploy-containers:
+    needs: deploy-infrastructure
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Update backend container
+      run: |
+        az containerapp update \
+          --name fastval-prod-backend \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+
+    - name: Update frontend container
+      run: |
+        az containerapp update \
+          --name fastval-prod-frontend \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+    - name: Run database migrations
+      run: |
+        az containerapp exec \
+          --name fastval-prod-backend \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --command "alembic upgrade head"
+
+  smoke-test:
+    needs: deploy-containers
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get backend URL
+      id: get-url
+      run: |
+        BACKEND_URL=$(az containerapp show \
+          --name fastval-prod-backend \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --query properties.configuration.ingress.fqdn \
+          -o tsv)
+        echo "backend_url=https://$BACKEND_URL" >> $GITHUB_OUTPUT
+
+    - name: Health check
+      run: |
+        curl -f ${{ steps.get-url.outputs.backend_url }}/health || exit 1
+
+    - name: API smoke test
+      run: |
+        curl -f ${{ steps.get-url.outputs.backend_url }}/api/v1/health || exit 1

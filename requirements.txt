@@ -1,0 +1,46 @@
+# FastAPI Core
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Async
+asyncpg==0.29.0
+aiofiles==23.2.1
+
+# Validation & Parsing
+python-multipart==0.0.6
+email-validator==2.1.0
+
+# Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+httpx==0.26.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+
+# X12 EDI Parsing
+pyx12==2.3.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.3
+
+# Logging
+loguru==0.7.2
+
+# CORS
+python-cors==1.0.0
