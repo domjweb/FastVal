@@ -155,62 +155,6 @@ Push to `main` branch triggers:
 3. Push to Azure Container Registry
 4. Deploy to Azure Container Apps/AKS
 
-## 📁 Project Structure
-
-```
-FastVal/
-├── app/
-│   ├── api/
-│   │   └── v1/
-│   │       ├── endpoints/
-│   │       │   ├── claims.py
-│   │       │   ├── remittance.py
-│   │       │   └── health.py
-│   │       └── api.py
-│   ├── core/
-│   │   ├── config.py
-│   │   └── security.py
-│   ├── db/
-│   │   ├── base.py
-│   │   └── session.py
-│   ├── models/
-│   │   ├── claim.py
-│   │   └── remittance.py
-│   ├── schemas/
-│   │   ├── claim.py
-│   │   └── remittance.py
-│   ├── services/
-│   │   ├── x12_parser.py
-│   │   ├── claim_processor.py
-│   │   └── remittance_generator.py
-│   ├── tests/
-│   └── main.py
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── App.js
-│   └── package.json
-├── terraform/
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── .github/
-│   └── workflows/
-│       ├── backend-ci.yml
-│       └── deploy.yml
-├── alembic/
-├── sample_files/
-│   ├── 837I_sample.txt
-│   └── 837P_sample.txt
-├── docker-compose.yml
-├── Dockerfile.backend
-├── Dockerfile.frontend
-├── requirements.txt
-└── README.md
-```
 
 ## 🔐 Security
 
@@ -220,22 +164,6 @@ FastVal/
 - SQL injection prevention with SQLAlchemy
 - Azure Key Vault integration ready
 
-## 📝 License
 
-MIT
 
-## 🤝 Contributing
 
-Contributions welcome! Please read CONTRIBUTING.md first.
-
-## 📧 Contact
-
-For questions or support, please open an issue.
-
----
-
-**Built to demonstrate:**
-✅ Healthcare EDI (837/835) expertise  
-✅ Full-stack development capabilities  
-✅ Cloud-native architecture patterns  
-✅ Modern DevOps practices  
