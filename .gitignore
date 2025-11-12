@@ -26,7 +26,8 @@ ENV/
 # FastAPI
 .env
 .env.local
-.env.example
+.env.production
+*.env
 
 # Database
 *.db
@@ -49,6 +50,10 @@ frontend/.env
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+terraform/terraform.tfvars
+terraform/.terraform.lock.hcl
+tfplan
+deployment-outputs.txt
 
 # Logs
 *.log
