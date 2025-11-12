@@ -6,15 +6,15 @@ services:
     image: postgres:14-alpine
     container_name: fastval_db
     environment:
-      POSTGRES_DB: fastval_db
-      POSTGRES_USER: fastval_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fastval
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fastval_user"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile.backend
     container_name: fastval_backend
     environment:
-      DATABASE_URL: postgresql://fastval_user:password@db:5432/fastval_db
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/fastval
       BACKEND_CORS_ORIGINS: '["http://localhost:3000","http://localhost"]'
     ports:
       - "8000:8000"

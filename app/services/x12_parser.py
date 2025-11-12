@@ -164,8 +164,16 @@ class X12Parser:
                     if len(proc_elements) > 2:
                         current_line['modifiers'] = [m for m in proc_elements[2:] if m]
                 
-                current_line['charge_amount'] = float(elements[2]) if len(elements) > 2 and elements[2] else 0.0
-                current_line['units'] = float(elements[4]) if len(elements) > 4 and elements[4] else 1.0
+                # Safely parse charge amount and units
+                try:
+                    current_line['charge_amount'] = float(elements[2]) if len(elements) > 2 and elements[2] else 0.0
+                except (ValueError, TypeError):
+                    current_line['charge_amount'] = 0.0
+                
+                try:
+                    current_line['units'] = float(elements[4]) if len(elements) > 4 and elements[4] else 1.0
+                except (ValueError, TypeError):
+                    current_line['units'] = 1.0
         
         if current_line:
             service_lines.append(current_line)

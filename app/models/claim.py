@@ -21,7 +21,7 @@ class Claim(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     claim_id = Column(String(50), unique=True, index=True, nullable=False)
-    claim_type = Column(Enum(ClaimType), nullable=False)
+    claim_type = Column(String(10), nullable=False)  # Store '837I' or '837P' directly
     
     # Patient Information
     patient_id = Column(String(50), nullable=False, index=True)

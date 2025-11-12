@@ -27,8 +27,9 @@ class ClaimProcessor:
         # Generate unique claim ID if not provided
         claim_id = claim_info.get('claim_id') or f"CLM-{uuid.uuid4().hex[:12].upper()}"
         
-        # Determine claim type
-        claim_type = ClaimType.INSTITUTIONAL if claim_data.get('claim_type') == '837I' else ClaimType.PROFESSIONAL
+        # Determine claim type - use the enum value directly
+        parsed_type = claim_data.get('claim_type', '837P')
+        claim_type = parsed_type if parsed_type in ['837I', '837P'] else '837P'
         
         # Create claim object
         claim = Claim(

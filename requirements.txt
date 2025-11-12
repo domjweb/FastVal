@@ -33,7 +33,7 @@ python-dateutil==2.8.2
 pytz==2023.3
 
 # X12 EDI Parsing
-pyx12==2.3.0
+pyx12==2.3.3
 
 # Data Processing
 pandas==2.1.4
@@ -41,6 +41,3 @@ numpy==1.26.3
 
 # Logging
 loguru==0.7.2
-
-# CORS
-python-cors==1.0.0

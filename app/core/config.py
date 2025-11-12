@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import field_validator
+from typing import List, Union
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,6 +24,16 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
     
+    @field_validator('BACKEND_CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [origin.strip() for origin in v.split(',')]
+        return v
+    
     # File Upload
     MAX_UPLOAD_SIZE: int = 10485760  # 10MB
     UPLOAD_DIR: str = "./uploads"
@@ -32,6 +44,7 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields from .env
 
 settings = Settings()
 
