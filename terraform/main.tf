@@ -8,13 +8,13 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    # Configure backend storage for state file
-    # resource_group_name  = "terraform-state-rg"
-    # storage_account_name = "tfstate"
-    # container_name       = "tfstate"
-    # key                  = "fastval.terraform.tfstate"
-  }
+  # Uncomment to use Azure Storage for remote state (optional)
+  # backend "azurerm" {
+  #   resource_group_name  = "terraform-state-rg"
+  #   storage_account_name = "tfstate"
+  #   container_name       = "tfstate"
+  #   key                  = "fastval.terraform.tfstate"
+  # }
 }
 
 provider "azurerm" {
@@ -50,11 +50,16 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   administrator_password = var.db_admin_password
   storage_mb             = 32768
   sku_name               = "B_Standard_B1ms"
+  zone                   = "3"
 
   backup_retention_days = 7
   geo_redundant_backup_enabled = false
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 # PostgreSQL Database

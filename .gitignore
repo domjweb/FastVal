@@ -54,6 +54,8 @@ terraform/terraform.tfvars
 terraform/.terraform.lock.hcl
 tfplan
 deployment-outputs.txt
+terraform/README.md
+
 
 # Logs
 *.log
